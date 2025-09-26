@@ -1,6 +1,0 @@
-# nixpacks.toml
-
-# 明确告诉 Railpack 构建系统
-# 优先使用 Dockerfile 作为构建方式。
-# 这样它就不会再去尝试分析项目类型（如 Node.js, Python 等）。
-providers = ["docker"]

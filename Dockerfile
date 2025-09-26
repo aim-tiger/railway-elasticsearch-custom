@@ -1,4 +1,4 @@
-# Final Dockerfile v2 - Now with gosu installation
+# The Definitive Dockerfile - Manual gosu Installation
 
 # 1. Start from the official image
 FROM docker.elastic.co/elasticsearch/elasticsearch:9.1.4
@@ -6,9 +6,11 @@ FROM docker.elastic.co/elasticsearch/elasticsearch:9.1.4
 # 2. Switch to ROOT to perform setup
 USER root
 
-# 3. (NEW STEP) Install gosu, a tool for switching users.
-#    The base image is Debian/Ubuntu-based, so we use apt-get.
-RUN apt-get update && apt-get install -y gosu && rm -rf /var/lib/apt/lists/*
+# 3. (THE FIX) Manually download and install gosu.
+# This bypasses the need for a specific package manager and will work on any Linux distribution.
+RUN curl -sSL -o /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/1.17/gosu-amd64" && \
+    chmod +x /usr/local/bin/gosu && \
+    gosu --version
 
 # 4. Create the data directory mount point
 RUN mkdir /data

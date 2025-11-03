@@ -8,9 +8,32 @@ USER root
 
 # 3. (THE FIX) Manually download and install gosu.
 # This bypasses the need for a specific package manager and will work on any Linux distribution.
-RUN curl -sSL -o /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/1.17/gosu-amd64" && \
-    chmod +x /usr/local/bin/gosu && \
-    gosu --version
+RUN set -eux; \
+    # Ensure curl is available (try common package managers if needed)
+    if ! command -v curl >/dev/null 2>&1; then \
+        if [ -f /etc/alpine-release ]; then \
+            apk add --no-cache curl; \
+        elif command -v apt-get >/dev/null 2>&1; then \
+            apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*; \
+        elif command -v yum >/dev/null 2>&1; then \
+            yum install -y curl; \
+        else \
+            echo "curl is required but no known package manager was found" >&2; \
+            exit 1; \
+        fi; \
+    fi; \
+    # Map kernel arch to gosu release arch
+    arch="$(uname -m)"; \
+    case "$arch" in \
+        x86_64) gosu_arch=amd64 ;; \
+        aarch64|arm64) gosu_arch=arm64 ;; \
+        *) gosu_arch="$arch" ;; \
+    esac; \
+    GOSU_VERSION=1.17; \
+    url="https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-${gosu_arch}"; \
+    curl -fsSL -o /usr/local/bin/gosu "$url"; \
+    chmod +x /usr/local/bin/gosu; \
+    /usr/local/bin/gosu --version
 
 # 4. Create the data directory mount point
 RUN mkdir /data
